@@ -1,6 +1,6 @@
 /*
  * Nombre del archivo:   main.c
- * Autor:
+ * Autor: Franco Navarro
  *
  * Descripción: 
  *      El sistema debe contar cuantas veces se presiona cada tecla (TEC1, TEC2,
@@ -77,9 +77,15 @@ void uart_tx_byte(uint8_t dato);
 /* ------------------------ Implementación de funciones --------------------- */
 void main(void) {                       // Función principal
     char dato_recibido;
-    
+    int cont1,cont2,cont3,cont4;
+    cont1=0;
+    cont2=0;
+    cont3=0;
+    cont4=0;
     gpio_config();                      // Inicializo las entradas y salidas
     uart_config();                      // Configuro la UART
+    PIN_LED_ROJO = 0;                   // Apago el LED_ROJO
+    PIN_LED_VERDE = 0;                  // Apago el LED_VERDE
     
     printf("Sistema inicializado!\r\n");
     printf("---------------------\r\n");
@@ -88,10 +94,70 @@ void main(void) {                       // Función principal
         // Ver este link: https://pbs.twimg.com/media/BafQje7CcAAN5en.jpg
         
         // TODO: Completar las acciones de las teclas
-        
-        if( uart_rx_byte( &dato_recibido ) ) {
-            // TODO: Completar las acciones de los comandos
+        if (PIN_TEC1 == 0) {
+
+            __delay_ms(140);
+            cont1++;
+            while (PIN_TEC1 == 0);
+            __delay_ms(140);
+
         }
+        if (PIN_TEC2 == 0) {
+
+            __delay_ms(140);
+            cont2++;
+            while (PIN_TEC2 == 0);
+            __delay_ms(140);
+
+        }
+        if (PIN_TEC3 == 0) {
+
+            __delay_ms(140);
+            cont3++;
+            while (PIN_TEC3 == 0);
+            __delay_ms(140);
+
+        }
+        if (PIN_TEC4 == 0) {
+
+            __delay_ms(140);
+            cont4++;
+            while (PIN_TEC4 == 0);
+            __delay_ms(140);
+
+        }
+        if (uart_rx_byte(&dato_recibido)) {  
+            // TODO: Completar las acciones de los comandos
+            
+            if (dato_recibido == 'Q'){
+                PIN_LED_VERDE = 1;
+                __delay_ms(100);
+                PIN_LED_VERDE = 0;
+                printf("Tec 1: %i\r\n", cont1);
+                printf("Tec 2: %i\r\n", cont2);
+                printf("Tec 3: %i\r\n", cont3);
+                printf("Tec 4: %i\r\n", cont4);
+            } else if(dato_recibido == 'D') {
+                PIN_LED_VERDE = 1;
+                __delay_ms(100);
+                PIN_LED_VERDE = 0;
+               cont1=0;
+               cont2=0;
+               cont3=0;
+               cont4=0;
+            }else{
+                PIN_LED_ROJO = 1;
+                __delay_ms(100);
+                PIN_LED_ROJO= 0;
+            }
+        
+        
+        
+        }
+
+            // TODO: Completar las acciones de los comandos
+           
+            
     }
     
     // NO DEBE LLEGAR NUNCA AQUÍ, debido a que este programa se ejecuta
@@ -103,10 +169,34 @@ void main(void) {                       // Función principal
 
 void gpio_config() {    
     // TODO: Completar inicialización de entradas y salidas
+        ANSEL = 0; // Configuro todas las entradas
+    ANSELH = 0; //   como digitales
+
+    TRIS_TEC1 = 1; // Configuro la TEC1 como entrada
+    TRIS_TEC2 = 1; // Configuro la TEC2 como entrada
+    TRIS_TEC3 = 1; // Configuro la TEC3 como entrada
+    TRIS_TEC4 = 1; // Configuro la TEC4 como entrada
+    
+
+    TRIS_LED_ROJO = 0; // Configuro el LED_ROJO como salida
+    TRIS_LED_VERDE = 0; // Configuro el LED_verde como salida
+    
 }
 
 void uart_config() {
     // TODO: Completa configuración de la UART
+     TXSTAbits.TX9 = 0; // SELECCIONO 9 BITS
+    TXSTAbits.TXEN = 1; // TRANSMICION HABILITADA
+    TXSTAbits.SYNC = 0; //MODO ASINCRONICO
+    
+    RCSTAbits.SPEN = 1; // TRABAJO EN SERIE
+    RCSTAbits.RX9 = 0; // 8 BITS
+    RCSTAbits.CREN = 1; 
+    
+   
+    TXSTAbits.BRGH = 0 ;
+    BAUDCTLbits.BRG16 = 1;
+    SPBRG = 25; //  Baudrate de 9600
 }
 
 /**
