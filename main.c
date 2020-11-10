@@ -26,7 +26,7 @@
 #include <xc.h>
 #include <stdio.h>
 #include <stdint.h>
-
+#include <string.h>
 /* ------------------------ Definiciones ------------------------------------ */
 #define _XTAL_FREQ  4000000L    // Frecuencia de operación del cristal
 
@@ -76,28 +76,26 @@ void uart_tx_byte(uint8_t dato);
 
 /* ------------------------ Implementación de funciones --------------------- */
 void main(void) {                       // Función principal
-    char dato_recibido;
-    int cont1,cont2,cont3,cont4;
-    cont1=0;
-    cont2=0;
-    cont3=0;
-    cont4=0;
-    gpio_config();                      // Inicializo las entradas y salidas
-    uart_config();                      // Configuro la UART
-    PIN_LED_ROJO = 0;                   // Apago el LED_ROJO
-    PIN_LED_VERDE = 0;                  // Apago el LED_VERDE
-    
+
+    char dato_recibido,i;
+    unsigned int cont[4] = {0,0,0,0};
+
+    gpio_config(); // Inicializo las entradas y salidas
+    uart_config(); // Configuro la UART
+    PIN_LED_ROJO = 0; // Apago el LED_ROJO
+    PIN_LED_VERDE = 0; // Apago el LED_VERDE
+
     printf("Sistema inicializado!\r\n");
     printf("---------------------\r\n");
-    
-    while(1) {                          // Super loop
+
+    while (1) { // Super loop
         // Ver este link: https://pbs.twimg.com/media/BafQje7CcAAN5en.jpg
-        
+
         // TODO: Completar las acciones de las teclas
         if (PIN_TEC1 == 0) {
 
             __delay_ms(140);
-            cont1++;
+            cont[0]++;
             while (PIN_TEC1 == 0);
             __delay_ms(140);
 
@@ -105,7 +103,7 @@ void main(void) {                       // Función principal
         if (PIN_TEC2 == 0) {
 
             __delay_ms(140);
-            cont2++;
+            cont[1]++;
             while (PIN_TEC2 == 0);
             __delay_ms(140);
 
@@ -113,7 +111,7 @@ void main(void) {                       // Función principal
         if (PIN_TEC3 == 0) {
 
             __delay_ms(140);
-            cont3++;
+            cont[2]++;
             while (PIN_TEC3 == 0);
             __delay_ms(140);
 
@@ -121,51 +119,46 @@ void main(void) {                       // Función principal
         if (PIN_TEC4 == 0) {
 
             __delay_ms(140);
-            cont4++;
+            cont[3]++;
             while (PIN_TEC4 == 0);
             __delay_ms(140);
 
         }
-        if (uart_rx_byte(&dato_recibido)) {  
+
+        if (uart_rx_byte(&dato_recibido)) {
             // TODO: Completar las acciones de los comandos
-            
-            if (dato_recibido == 'Q'){
+
+            if (dato_recibido == 'Q') {
                 PIN_LED_VERDE = 1;
                 __delay_ms(100);
                 PIN_LED_VERDE = 0;
-                printf("Tec 1: %i\r\n", cont1);
-                printf("Tec 2: %i\r\n", cont2);
-                printf("Tec 3: %i\r\n", cont3);
-                printf("Tec 4: %i\r\n", cont4);
-            } else if(dato_recibido == 'D') {
+                for (i = 0; i < 4; i++) {
+                    printf("Tec %d: %d\r\n", i + 1, cont[i]);
+                }
+            } else if (dato_recibido == 'D') {
                 PIN_LED_VERDE = 1;
                 __delay_ms(100);
                 PIN_LED_VERDE = 0;
-               cont1=0;
-               cont2=0;
-               cont3=0;
-               cont4=0;
-            }else{
+                memset(cont, 0, sizeof (cont));
+            } else {
                 PIN_LED_ROJO = 1;
                 __delay_ms(100);
-                PIN_LED_ROJO= 0;
+                PIN_LED_ROJO = 0;
             }
-        
-        
-        
-        }
 
-            // TODO: Completar las acciones de los comandos
-           
-            
+
+
+        }
     }
-    
-    // NO DEBE LLEGAR NUNCA AQUÍ, debido a que este programa se ejecuta
-    // directamente sobre un microcontrolador y no es llamado por un ningún
-    // sistema operativo, como en el caso de un programa para PC.
-    
+    // TODO: Completar las acciones de los comandos
+
     return;
 }
+
+// NO DEBE LLEGAR NUNCA AQUÍ, debido a que este programa se ejecuta
+// directamente sobre un microcontrolador y no es llamado por un ningún
+// sistema operativo, como en el caso de un programa para PC.
+
 
 void gpio_config() {    
     // TODO: Completar inicialización de entradas y salidas
@@ -185,18 +178,24 @@ void gpio_config() {
 
 void uart_config() {
     // TODO: Completa configuración de la UART
-     TXSTAbits.TX9 = 0; // SELECCIONO 9 BITS
-    TXSTAbits.TXEN = 1; // TRANSMICION HABILITADA
-    TXSTAbits.SYNC = 0; //MODO ASINCRONICO
+    
+    BAUDCTLbits.BRG16 = 1;
+    SPBRG = 25; //  Baudrate de 9600
     
     RCSTAbits.SPEN = 1; // TRABAJO EN SERIE
     RCSTAbits.RX9 = 0; // 8 BITS
     RCSTAbits.CREN = 1; 
     
+    TXSTAbits.TX9 = 0; // SELECCIONO 9 BITS
+    TXSTAbits.TXEN = 1; // TRANSMICION HABILITADA
+    TXSTAbits.SYNC = 0; //MODO ASINCRONICO
+    
+    
+    
    
     TXSTAbits.BRGH = 0 ;
-    BAUDCTLbits.BRG16 = 1;
-    SPBRG = 25; //  Baudrate de 9600
+   
+    
 }
 
 /**
